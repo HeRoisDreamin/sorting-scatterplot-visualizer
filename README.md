@@ -20,7 +20,7 @@
 
 ![Sorting Visualizer Demo](preview.gif)
 
----
+
 
 ## ✨ Highlights
 
