@@ -13,8 +13,8 @@
 
 </div>
 
----
 
+---
 ## 🎥 Preview
 
 ![Sorting Visualizer Demo](preview.gif)
