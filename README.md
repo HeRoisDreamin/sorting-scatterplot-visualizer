@@ -69,8 +69,9 @@
 
 ```text
 sorting-scatter-visualizer/
-├── index.html      # Complete standalone visualizer (HTML + CSS + JS)
-└── README.md       # Project documentation
+├── visualizer.html      # Complete standalone visualizer (HTML + CSS + JS)
+├── preview.gif          # GIF for README 
+└── README.md            # Project documentation
 ```
 
 ---
