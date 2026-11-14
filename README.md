@@ -9,7 +9,7 @@
   ![Web Audio API](https://img.shields.io/badge/Audio-Web%20Audio%20API-8A2BE2?style=for-the-badge)
   ![Dependencies](https://img.shields.io/badge/Dependencies-Zero-3FB950?style=for-the-badge)
 
-[**Live Demo**](https://HeRoisDreamin.github.io/sorting-scatter-visualizer/) · [**Report Bug**](https://github.com/HeRoisDreamin/sorting-scatter-visualizer/issues) · [**Request Feature**](https://github.com/HeRoisDreamin/sorting-scatter-visualizer/issues)
+[**Live Demo**](https://HeRoisDreamin.github.io/sorting-scatterplot-visualizer/) · [**Report Bug**](https://github.com/HeRoisDreamin/sorting-scatterplot-visualizer/issues) · [**Request Feature**](https://github.com/HeRoisDreamin/sorting-scatterplot-visualizer/issues)
 
 </div>
 
