@@ -14,13 +14,13 @@
 </div>
 
 
----
+
 
 ## 🎥 Preview
 
 ![Sorting Visualizer Demo](preview.gif)
 
----
+
 
 ## ✨ Highlights
 
@@ -30,7 +30,7 @@
 * **Real-Time Web Audio Synthesis:** Toggleable audio maps element values to frequencies (`180 Hz – 1000 Hz`), ending with an ascending harmonic glissando and a soft two-note chime.
 * **Single-File Architecture:** Zero build steps, zero external libraries — works offline out of the box and deploys directly to GitHub Pages.
 
----
+
 
 ## 🧭 How to Read the Scatter Plot
 
@@ -41,7 +41,7 @@
 | **White Flashing Dots** | Elements actively being compared, shifted, or swapped. |
 | **Sorted State** | Standard sorts never mutate element values (vertical height); they permute horizontal positions until all dots form a clean bottom-left to top-right diagonal. |
 
----
+
 
 ## 🧠 Supported Algorithms
 
@@ -64,7 +64,7 @@
 | **Meme Sorts** | **Stalin Sort** | $O(n)$ *(drops out-of-order items)* | $O(n)$ | $O(1)$ |
 | | **Bogo Sort** | $O((n + 1)!)$ | Unbounded | $O(1)$ |
 
----
+
 
 ## 📁 Repository Structure
 
@@ -75,20 +75,19 @@ sorting-scatter-visualizer/
 └── README.md             # Project documentation
 ```
 
----
 
 ## 🚀 Quick Start
 
 No setup or installation needed — **just left-click the [GitHub Pages link](https://HeRoisDreamin.github.io/sorting-scatter-visualizer/) and watch** the algorithms sort in real time (or download `index.html` and open it locally in any browser).
 
----
+
 
 ## ⚙️ How It Works Under the Hood
 
 1. **ES6 Generator State Machines (`function*`):** Every sorting algorithm is written as a clean generator that `yield`s active indices on each comparison or write, decoupling algorithm logic from the 60fps `requestAnimationFrame` loop without storing memory-heavy swap histories.
 2. **Power-of-Two Array Sizes ($N \in \{64, 128, 256, 512\}$):** Ensures Bitonic Sort's XOR-based sorting network (`i ^ j`) runs cleanly and allows Base-8 LSD Radix Sort to resolve $N = 512$ ($8^3$) in three crisp visual passes.
 
----
+
 
 ## 🙌 Credits & Acknowledgments
 
