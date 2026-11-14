@@ -1,0 +1,1197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Sorting Scatter Plot Visualizer — Full Suite</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background: #0a0c10;
+      color: #e6edf3;
+      font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
+      gap: 14px;
+      padding: 16px;
+    }
+    .controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      align-items: center;
+      justify-content: center;
+      background: #161b22;
+      padding: 10px 16px;
+      border-radius: 10px;
+      border: 1px solid #30363d;
+    }
+    select, button, input[type="range"] {
+      background: #21262d;
+      color: #e6edf3;
+      border: 1px solid #30363d;
+      padding: 6px 10px;
+      border-radius: 6px;
+      font-family: inherit;
+      font-size: 13px;
+      cursor: pointer;
+    }
+    button:hover, select:hover { background: #30363d; }
+    label {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #c9d1d9;
+    }
+    .canvas-wrap {
+      position: relative;
+      border: 1px solid #30363d;
+      border-radius: 12px;
+      overflow: hidden;
+      background: #0d1117;
+    }
+    .hud {
+      position: absolute;
+      top: 14px;
+      left: 22px;
+      right: 22px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      pointer-events: none;
+    }
+    .hud-left { line-height: 1.45; }
+    .title-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .hud-left h2 { font-size: 18px; color: #fff; }
+    .hud-left p { font-size: 13px; color: #8b949e; }
+    .badge {
+      font-size: 11px;
+      font-weight: 600;
+      padding: 2px 8px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      color: #e6edf3;
+      border: 1px solid rgba(255, 255, 255, 0.25);
+      opacity: 0;
+      transform: translateY(-2px);
+      transition: opacity 0.25s ease, transform 0.25s ease;
+    }
+    .badge.visible {
+      opacity: 1;
+      transform: translateY(0);
+    }
+    .legend {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(22, 27, 34, 0.85);
+      border: 1px solid #30363d;
+      padding: 6px 10px;
+      border-radius: 8px;
+      font-size: 11px;
+      color: #8b949e;
+    }
+    .legend-bar {
+      width: 72px;
+      height: 8px;
+      border-radius: 4px;
+      background: linear-gradient(
+        to right,
+        hsl(0, 90%, 60%),
+        hsl(70, 90%, 60%),
+        hsl(140, 90%, 60%),
+        hsl(210, 90%, 60%),
+        hsl(280, 90%, 60%)
+      );
+    }
+  </style>
+</head>
+<body>
+
+  <div class="controls">
+    <select id="algoSelect">
+      <optgroup label="O(n log n) & Sub-Quadratic">
+        <option value="quick">Quick Sort — O(n log n)</option>
+        <option value="intro">Introsort (std::sort) — O(n log n)</option>
+        <option value="merge">Merge Sort (Bottom-Up) — O(n log n)</option>
+        <option value="shell">Shell Sort — O(n log² n)</option>
+        <option value="bitonic">Bitonic Sort — O(n log² n)</option>
+        <option value="radix">LSD Radix Sort (Base 8) — O(n)</option>
+      </optgroup>
+      <optgroup label="Tree-Based Sorts">
+        <option value="heap">Heap Sort — O(n log n)</option>
+        <option value="bst">Tree Sort (BST) — O(n log n) avg</option>
+        <option value="avl">AVL Tree Sort (Balanced) — O(n log n)</option>
+        <option value="tournament">Tournament Sort — O(n log n)</option>
+      </optgroup>
+      <optgroup label="O(n²) Elementary Sorts">
+        <option value="bubble">Bubble Sort — O(n²)</option>
+        <option value="selection">Selection Sort — O(n²)</option>
+        <option value="insertion">Insertion Sort — O(n²)</option>
+        <option value="cocktail">Cocktail Shaker Sort — O(n²)</option>
+      </optgroup>
+      <optgroup label="Meme Sorts">
+        <option value="stalin">Stalin Sort — O(n)</option>
+        <option value="bogo">Bogo Sort — O((n+1)!)</option>
+      </optgroup>
+    </select>
+
+    <label>N:
+      <select id="sizeSelect">
+        <option value="64">64</option>
+        <option value="128">128</option>
+        <option value="256" selected>256</option>
+        <option value="512">512</option>
+      </select>
+    </label>
+
+    <label>Speed:
+      <input id="speedSlider" type="range" min="1" max="200" value="40" />
+    </label>
+
+    <label>
+      <input id="soundToggle" type="checkbox" /> Sound
+    </label>
+
+    <button id="restartBtn">Shuffle & Run</button>
+  </div>
+
+  <div class="canvas-wrap">
+    <div class="hud">
+      <div class="hud-left">
+        <div class="title-row">
+          <h2 id="algoTitle">Quick Sort</h2>
+          <span id="sortedBadge" class="badge">✓ Sorted</span>
+        </div>
+        <p id="opsCounter">Operations: 0 | N = 256</p>
+      </div>
+      <div class="legend">
+        <span>Low</span>
+        <div class="legend-bar"></div>
+        <span>High</span>
+      </div>
+    </div>
+    <canvas id="canvas" width="800" height="560"></canvas>
+  </div>
+
+  <script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    const algoSelect = document.getElementById("algoSelect");
+    const sizeSelect = document.getElementById("sizeSelect");
+    const speedSlider = document.getElementById("speedSlider");
+    const soundToggle = document.getElementById("soundToggle");
+    const algoTitle = document.getElementById("algoTitle");
+    const opsCounter = document.getElementById("opsCounter");
+    const sortedBadge = document.getElementById("sortedBadge");
+
+    let N = 256;
+    let arr = [];
+    let ops = 0;
+    let statusExtra = "";
+    let activeIndices = [];
+    let sorter = null;
+    let animId = null;
+    let audioCtx = null;
+
+    // Shimmer completion state: "sorting" | "sweeping" | "done"
+    let phase = "sorting";
+    let sweepPos = -1;
+    let chimePlayed = false;
+
+    function getAudioContext() {
+      if (!audioCtx) {
+        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (audioCtx.state === "suspended") {
+        audioCtx.resume();
+      }
+      return audioCtx;
+    }
+
+    // --- Sorting Blip ---
+    function playTone(val) {
+      if (!soundToggle.checked || val === null || val === undefined) return;
+      const ac = getAudioContext();
+      const osc = ac.createOscillator();
+      const gain = ac.createGain();
+      osc.type = "triangle";
+      osc.frequency.value = 180 + (val / N) * 820;
+      gain.gain.setValueAtTime(0.03, ac.currentTime);
+      gain.gain.exponentialRampToValueAtTime(0.0001, ac.currentTime + 0.03);
+      osc.connect(gain);
+      gain.connect(ac.destination);
+      osc.start();
+      osc.stop(ac.currentTime + 0.03);
+    }
+
+    // --- Shimmer Wave Harmonic Note ---
+    function playShimmerNote(val) {
+      if (!soundToggle.checked || val === null || val === undefined) return;
+      const ac = getAudioContext();
+      const now = ac.currentTime;
+      const baseFreq = 220 + (val / N) * 880; // Smooth 220Hz -> 1100Hz sweep
+
+      const osc1 = ac.createOscillator();
+      const osc2 = ac.createOscillator();
+      const gain = ac.createGain();
+
+      osc1.type = "sine";
+      osc1.frequency.setValueAtTime(baseFreq, now);
+
+      osc2.type = "triangle";
+      osc2.frequency.setValueAtTime(baseFreq * 2, now);
+
+      const osc2Gain = ac.createGain();
+      osc2Gain.gain.setValueAtTime(0.2, now);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(0.032, now + 0.01);
+      gain.gain.exponentialRampToValueAtTime(0.0001, now + 0.14);
+
+      osc1.connect(gain);
+      osc2.connect(osc2Gain);
+      osc2Gain.connect(gain);
+      gain.connect(ac.destination);
+
+      osc1.start(now);
+      osc2.start(now);
+      osc1.stop(now + 0.15);
+      osc2.stop(now + 0.15);
+    }
+
+    // --- Gentle Two-Note Completion Chime ---
+    function playCompletionChime() {
+      if (!soundToggle.checked || chimePlayed) return;
+      chimePlayed = true;
+      const ac = getAudioContext();
+      const notes = [783.99, 1046.5]; // Soft G5 -> C6 bell interval
+
+      notes.forEach((freq, idx) => {
+        const start = ac.currentTime + idx * 0.08;
+        const osc = ac.createOscillator();
+        const gain = ac.createGain();
+
+        osc.type = "sine";
+        osc.frequency.setValueAtTime(freq, start);
+
+        gain.gain.setValueAtTime(0.0001, start);
+        gain.gain.linearRampToValueAtTime(0.018, start + 0.02);
+        gain.gain.exponentialRampToValueAtTime(0.0001, start + 0.45);
+
+        osc.connect(gain);
+        gain.connect(ac.destination);
+        osc.start(start);
+        osc.stop(start + 0.46);
+      });
+    }
+
+    // --- Sorting Algorithms as Generators ---
+
+    function* quickSort(a, low = 0, high = a.length - 1) {
+      if (low >= high) return;
+      const pivot = a[high];
+      let i = low;
+      for (let j = low; j < high; j++) {
+        ops++;
+        yield [j, high];
+        if (a[j] < pivot) {
+          [a[i], a[j]] = [a[j], a[i]];
+          ops++;
+          yield [i, j];
+          i++;
+        }
+      }
+      [a[i], a[high]] = [a[high], a[i]];
+      ops++;
+      yield [i, high];
+      yield* quickSort(a, low, i - 1);
+      yield* quickSort(a, i + 1, high);
+    }
+
+    function* introSort(a) {
+      const n = a.length;
+      const maxDepth = 2 * Math.floor(Math.log2(n));
+
+      function* insertionRange(left, right) {
+        statusExtra = " | Phase: Insertion (≤16)";
+        for (let i = left + 1; i <= right; i++) {
+          const key = a[i];
+          let j = i - 1;
+          while (j >= left && a[j] > key) {
+            ops++;
+            a[j + 1] = a[j];
+            yield [j, j + 1];
+            j--;
+          }
+          a[j + 1] = key;
+          ops++;
+          yield [j + 1];
+        }
+      }
+
+      function* heapRange(left, right) {
+        statusExtra = " | Phase: Heap Fallback";
+        const size = right - left + 1;
+        function* heapify(heapSize, i) {
+          let largest = i;
+          const l = 2 * i + 1;
+          const r = 2 * i + 2;
+          if (l < heapSize) {
+            ops++;
+            yield [left + l, left + largest];
+            if (a[left + l] > a[left + largest]) largest = l;
+          }
+          if (r < heapSize) {
+            ops++;
+            yield [left + r, left + largest];
+            if (a[left + r] > a[left + largest]) largest = r;
+          }
+          if (largest !== i) {
+            [a[left + i], a[left + largest]] = [a[left + largest], a[left + i]];
+            ops++;
+            yield [left + i, left + largest];
+            yield* heapify(heapSize, largest);
+          }
+        }
+        for (let i = Math.floor(size / 2) - 1; i >= 0; i--) {
+          yield* heapify(size, i);
+        }
+        for (let i = size - 1; i > 0; i--) {
+          [a[left], a[left + i]] = [a[left + i], a[left]];
+          ops++;
+          yield [left, left + i];
+          yield* heapify(i, 0);
+        }
+      }
+
+      function* sortLoop(left, right, depthLimit) {
+        const size = right - left + 1;
+        if (size <= 1) return;
+        if (size <= 16) {
+          yield* insertionRange(left, right);
+          return;
+        }
+        if (depthLimit === 0) {
+          yield* heapRange(left, right);
+          return;
+        }
+
+        statusExtra = " | Phase: Quick Partition";
+        const mid = left + Math.floor((right - left) / 2);
+        if (a[mid] < a[left]) {
+          [a[left], a[mid]] = [a[mid], a[left]];
+          ops++;
+          yield [left, mid];
+        }
+        if (a[right] < a[left]) {
+          [a[left], a[right]] = [a[right], a[left]];
+          ops++;
+          yield [left, right];
+        }
+        if (a[mid] < a[right]) {
+          [a[mid], a[right]] = [a[right], a[mid]];
+          ops++;
+          yield [mid, right];
+        }
+
+        const pivot = a[right];
+        let i = left;
+        for (let j = left; j < right; j++) {
+          ops++;
+          yield [j, right];
+          if (a[j] < pivot) {
+            [a[i], a[j]] = [a[j], a[i]];
+            ops++;
+            yield [i, j];
+            i++;
+          }
+        }
+        [a[i], a[right]] = [a[right], a[i]];
+        ops++;
+        yield [i, right];
+
+        yield* sortLoop(left, i - 1, depthLimit - 1);
+        yield* sortLoop(i + 1, right, depthLimit - 1);
+      }
+
+      yield* sortLoop(0, n - 1, maxDepth);
+      statusExtra = "";
+    }
+
+    function* mergeSort(a) {
+      const n = a.length;
+      for (let size = 1; size < n; size *= 2) {
+        for (let leftStart = 0; leftStart < n - 1; leftStart += 2 * size) {
+          const mid = Math.min(leftStart + size - 1, n - 1);
+          const rightEnd = Math.min(leftStart + 2 * size - 1, n - 1);
+          if (mid >= rightEnd) continue;
+
+          const left = a.slice(leftStart, mid + 1);
+          const right = a.slice(mid + 1, rightEnd + 1);
+          let i = 0, j = 0, k = leftStart;
+
+          while (i < left.length && j < right.length) {
+            ops++;
+            yield [leftStart + i, mid + 1 + j];
+            if (left[i] <= right[j]) {
+              a[k] = left[i++];
+            } else {
+              a[k] = right[j++];
+            }
+            ops++;
+            yield [k];
+            k++;
+          }
+          while (i < left.length) {
+            a[k] = left[i++];
+            ops++;
+            yield [k];
+            k++;
+          }
+          while (j < right.length) {
+            a[k] = right[j++];
+            ops++;
+            yield [k];
+            k++;
+          }
+        }
+      }
+    }
+
+    function* heapSort(a) {
+      const n = a.length;
+      function* heapify(size, i) {
+        let largest = i;
+        const l = 2 * i + 1;
+        const r = 2 * i + 2;
+
+        if (l < size) {
+          ops++;
+          yield [l, largest];
+          if (a[l] > a[largest]) largest = l;
+        }
+        if (r < size) {
+          ops++;
+          yield [r, largest];
+          if (a[r] > a[largest]) largest = r;
+        }
+        if (largest !== i) {
+          [a[i], a[largest]] = [a[largest], a[i]];
+          ops++;
+          yield [i, largest];
+          yield* heapify(size, largest);
+        }
+      }
+
+      for (let i = Math.floor(n / 2) - 1; i >= 0; i--) {
+        yield* heapify(n, i);
+      }
+      for (let i = n - 1; i > 0; i--) {
+        [a[0], a[i]] = [a[i], a[0]];
+        ops++;
+        yield [0, i];
+        yield* heapify(i, 0);
+      }
+    }
+
+    function* bstSort(a) {
+      const n = a.length;
+      const nodesAtIdx = new Array(n);
+      let root = null;
+
+      statusExtra = " | Phase: Building BST";
+      for (let i = 0; i < n; i++) {
+        const newNode = { val: a[i], idx: i, left: null, right: null };
+        nodesAtIdx[i] = newNode;
+        if (!root) {
+          root = newNode;
+          ops++;
+          yield [i];
+          continue;
+        }
+        let curr = root;
+        while (true) {
+          ops++;
+          yield [i, curr.idx];
+          if (newNode.val < curr.val) {
+            if (!curr.left) {
+              curr.left = newNode;
+              break;
+            }
+            curr = curr.left;
+          } else {
+            if (!curr.right) {
+              curr.right = newNode;
+              break;
+            }
+            curr = curr.right;
+          }
+        }
+      }
+
+      statusExtra = " | Phase: In-Order Traversal";
+      let writeIdx = 0;
+      function* inOrder(node) {
+        if (!node) return;
+        yield* inOrder(node.left);
+
+        const targetIdx = writeIdx++;
+        const currentIdx = node.idx;
+        if (currentIdx !== targetIdx) {
+          const displacedNode = nodesAtIdx[targetIdx];
+          [a[targetIdx], a[currentIdx]] = [a[currentIdx], a[targetIdx]];
+          node.idx = targetIdx;
+          displacedNode.idx = currentIdx;
+          nodesAtIdx[targetIdx] = node;
+          nodesAtIdx[currentIdx] = displacedNode;
+          ops++;
+          yield [targetIdx, currentIdx];
+        } else {
+          ops++;
+          yield [targetIdx];
+        }
+
+        yield* inOrder(node.right);
+      }
+
+      yield* inOrder(root);
+      statusExtra = "";
+    }
+
+    function* avlSort(a) {
+      const n = a.length;
+      const nodesAtIdx = new Array(n);
+      let root = null;
+
+      const height = (node) => (node ? node.h : 0);
+      const updateHeight = (node) => {
+        node.h = 1 + Math.max(height(node.left), height(node.right));
+      };
+      const getBalance = (node) => (node ? height(node.left) - height(node.right) : 0);
+
+      function rightRotate(y) {
+        const x = y.left;
+        const T2 = x.right;
+        x.right = y;
+        y.left = T2;
+        updateHeight(y);
+        updateHeight(x);
+        return x;
+      }
+
+      function leftRotate(x) {
+        const y = x.right;
+        const T2 = y.left;
+        y.left = x;
+        x.right = T2;
+        updateHeight(x);
+        updateHeight(y);
+        return y;
+      }
+
+      function* insert(node, newNode) {
+        if (!node) {
+          ops++;
+          yield [newNode.idx];
+          return newNode;
+        }
+        ops++;
+        yield [newNode.idx, node.idx];
+        if (newNode.val < node.val) {
+          node.left = yield* insert(node.left, newNode);
+        } else {
+          node.right = yield* insert(node.right, newNode);
+        }
+
+        updateHeight(node);
+        const balance = getBalance(node);
+
+        if (balance > 1 && newNode.val < node.left.val) {
+          ops++;
+          yield [node.idx, node.left.idx];
+          return rightRotate(node);
+        }
+        if (balance < -1 && newNode.val >= node.right.val) {
+          ops++;
+          yield [node.idx, node.right.idx];
+          return leftRotate(node);
+        }
+        if (balance > 1 && newNode.val >= node.left.val) {
+          ops++;
+          yield [node.idx, node.left.idx];
+          node.left = leftRotate(node.left);
+          return rightRotate(node);
+        }
+        if (balance < -1 && newNode.val < node.right.val) {
+          ops++;
+          yield [node.idx, node.right.idx];
+          node.right = rightRotate(node.right);
+          return leftRotate(node);
+        }
+        return node;
+      }
+
+      statusExtra = " | Phase: Balancing AVL Tree";
+      for (let i = 0; i < n; i++) {
+        const newNode = { val: a[i], idx: i, left: null, right: null, h: 1 };
+        nodesAtIdx[i] = newNode;
+        root = yield* insert(root, newNode);
+      }
+
+      statusExtra = " | Phase: In-Order Traversal";
+      let writeIdx = 0;
+      function* inOrder(node) {
+        if (!node) return;
+        yield* inOrder(node.left);
+
+        const targetIdx = writeIdx++;
+        const currentIdx = node.idx;
+        if (currentIdx !== targetIdx) {
+          const displacedNode = nodesAtIdx[targetIdx];
+          [a[targetIdx], a[currentIdx]] = [a[currentIdx], a[targetIdx]];
+          node.idx = targetIdx;
+          displacedNode.idx = currentIdx;
+          nodesAtIdx[targetIdx] = node;
+          nodesAtIdx[currentIdx] = displacedNode;
+          ops++;
+          yield [targetIdx, currentIdx];
+        } else {
+          ops++;
+          yield [targetIdx];
+        }
+
+        yield* inOrder(node.right);
+      }
+
+      yield* inOrder(root);
+      statusExtra = "";
+    }
+
+    function* tournamentSort(a) {
+      const n = a.length;
+      let treeSize = 1;
+      while (treeSize < n) treeSize *= 2;
+
+      const leaves = new Array(treeSize);
+      const leafByArrayIdx = new Array(n);
+
+      for (let i = 0; i < treeSize; i++) {
+        if (i < n) {
+          const leaf = { val: a[i], idx: i, slot: i };
+          leaves[i] = leaf;
+          leafByArrayIdx[i] = leaf;
+        } else {
+          leaves[i] = { val: Infinity, idx: -1, slot: i };
+        }
+      }
+
+      const tree = new Array(2 * treeSize);
+      for (let i = 0; i < treeSize; i++) {
+        tree[treeSize + i] = leaves[i];
+      }
+
+      statusExtra = " | Phase: Initial Bracket";
+      for (let node = treeSize - 1; node >= 1; node--) {
+        const left = tree[2 * node];
+        const right = tree[2 * node + 1];
+        if (left.val !== Infinity && right.val !== Infinity) {
+          ops++;
+          yield [left.idx, right.idx];
+        }
+        tree[node] = left.val <= right.val ? left : right;
+      }
+
+      statusExtra = " | Phase: Extracting Winners";
+      for (let k = 0; k < n; k++) {
+        const winner = tree[1];
+        const winIdx = winner.idx;
+
+        if (winIdx !== k) {
+          const displacedLeaf = leafByArrayIdx[k];
+          [a[k], a[winIdx]] = [a[winIdx], a[k]];
+          winner.idx = k;
+          displacedLeaf.idx = winIdx;
+          leafByArrayIdx[k] = winner;
+          leafByArrayIdx[winIdx] = displacedLeaf;
+          ops++;
+          yield [k, winIdx];
+        } else {
+          ops++;
+          yield [k];
+        }
+
+        winner.val = Infinity;
+        let node = Math.floor((treeSize + winner.slot) / 2);
+        while (node >= 1) {
+          const left = tree[2 * node];
+          const right = tree[2 * node + 1];
+          if (left.val !== Infinity && right.val !== Infinity) {
+            ops++;
+            yield [left.idx, right.idx];
+          }
+          tree[node] = left.val <= right.val ? left : right;
+          node = Math.floor(node / 2);
+        }
+      }
+      statusExtra = "";
+    }
+
+    function* shellSort(a) {
+      const n = a.length;
+      for (let gap = Math.floor(n / 2); gap > 0; gap = Math.floor(gap / 2)) {
+        for (let i = gap; i < n; i++) {
+          const temp = a[i];
+          let j = i;
+          while (j >= gap) {
+            ops++;
+            yield [j, j - gap];
+            if (a[j - gap] > temp) {
+              a[j] = a[j - gap];
+              ops++;
+              yield [j];
+              j -= gap;
+            } else {
+              break;
+            }
+          }
+          a[j] = temp;
+          ops++;
+          yield [j];
+        }
+      }
+    }
+
+    function* bitonicSort(a) {
+      const n = a.length;
+      for (let k = 2; k <= n; k *= 2) {
+        for (let j = Math.floor(k / 2); j > 0; j = Math.floor(j / 2)) {
+          for (let i = 0; i < n; i++) {
+            const l = i ^ j;
+            if (l > i) {
+              ops++;
+              yield [i, l];
+              const ascending = (i & k) === 0;
+              if ((ascending && a[i] > a[l]) || (!ascending && a[i] < a[l])) {
+                [a[i], a[l]] = [a[l], a[i]];
+                ops++;
+                yield [i, l];
+              }
+            }
+          }
+        }
+      }
+    }
+
+    function* radixSort(a) {
+      const n = a.length;
+      const base = 8;
+      const maxVal = n - 1;
+      for (let exp = 1; Math.floor(maxVal / exp) > 0; exp *= base) {
+        const buckets = Array.from({ length: base }, () => []);
+        for (let i = 0; i < n; i++) {
+          const digit = Math.floor(a[i] / exp) % base;
+          buckets[digit].push(a[i]);
+          ops++;
+          yield [i];
+        }
+        let idx = 0;
+        for (let b = 0; b < base; b++) {
+          for (const val of buckets[b]) {
+            a[idx] = val;
+            ops++;
+            yield [idx];
+            idx++;
+          }
+        }
+      }
+    }
+
+    function* bubbleSort(a) {
+      for (let i = 0; i < a.length - 1; i++) {
+        let swapped = false;
+        for (let j = 0; j < a.length - i - 1; j++) {
+          ops++;
+          yield [j, j + 1];
+          if (a[j] > a[j + 1]) {
+            [a[j], a[j + 1]] = [a[j + 1], a[j]];
+            swapped = true;
+            ops++;
+            yield [j, j + 1];
+          }
+        }
+        if (!swapped) break;
+      }
+    }
+
+    function* selectionSort(a) {
+      for (let i = 0; i < a.length - 1; i++) {
+        let minIdx = i;
+        for (let j = i + 1; j < a.length; j++) {
+          ops++;
+          yield [j, minIdx];
+          if (a[j] < a[minIdx]) minIdx = j;
+        }
+        if (minIdx !== i) {
+          [a[i], a[minIdx]] = [a[minIdx], a[i]];
+          ops++;
+          yield [i, minIdx];
+        }
+      }
+    }
+
+    function* insertionSort(a) {
+      for (let i = 1; i < a.length; i++) {
+        const key = a[i];
+        let j = i - 1;
+        while (j >= 0 && a[j] > key) {
+          ops++;
+          a[j + 1] = a[j];
+          yield [j, j + 1];
+          j--;
+        }
+        a[j + 1] = key;
+        ops++;
+        yield [j + 1];
+      }
+    }
+
+    function* cocktailSort(a) {
+      let start = 0, end = a.length - 1, swapped = true;
+      while (swapped) {
+        swapped = false;
+        for (let i = start; i < end; i++) {
+          ops++;
+          yield [i, i + 1];
+          if (a[i] > a[i + 1]) {
+            [a[i], a[i + 1]] = [a[i + 1], a[i]];
+            swapped = true;
+            ops++;
+            yield [i, i + 1];
+          }
+        }
+        if (!swapped) break;
+        swapped = false;
+        end--;
+        for (let i = end - 1; i >= start; i--) {
+          ops++;
+          yield [i, i + 1];
+          if (a[i] > a[i + 1]) {
+            [a[i], a[i + 1]] = [a[i + 1], a[i]];
+            swapped = true;
+            ops++;
+            yield [i, i + 1];
+          }
+        }
+        start++;
+      }
+    }
+
+    function* stalinSort(a) {
+      let maxSoFar = a[0];
+      let eliminated = 0;
+      for (let i = 1; i < a.length; i++) {
+        ops++;
+        yield [i];
+        if (a[i] < maxSoFar) {
+          a[i] = null;
+          eliminated++;
+          statusExtra = ` | Eliminated: ${eliminated}`;
+        } else {
+          maxSoFar = a[i];
+        }
+      }
+    }
+
+    function* bogoSort(a) {
+      const isSorted = () => {
+        for (let i = 1; i < a.length; i++) {
+          if (a[i - 1] > a[i]) return false;
+        }
+        return true;
+      };
+      while (!isSorted()) {
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        ops++;
+        yield [Math.floor(Math.random() * a.length)];
+      }
+    }
+
+    const ALGORITHMS = {
+      quick: { name: "Quick Sort", fn: quickSort },
+      intro: { name: "Introsort (std::sort)", fn: introSort },
+      merge: { name: "Merge Sort (Bottom-Up)", fn: mergeSort },
+      shell: { name: "Shell Sort", fn: shellSort },
+      bitonic: { name: "Bitonic Sort", fn: bitonicSort },
+      radix: { name: "LSD Radix Sort (Base 8)", fn: radixSort },
+      heap: { name: "Heap Sort", fn: heapSort },
+      bst: { name: "Tree Sort (BST)", fn: bstSort },
+      avl: { name: "AVL Tree Sort (Balanced)", fn: avlSort },
+      tournament: { name: "Tournament Sort", fn: tournamentSort },
+      bubble: { name: "Bubble Sort", fn: bubbleSort },
+      selection: { name: "Selection Sort", fn: selectionSort },
+      insertion: { name: "Insertion Sort", fn: insertionSort },
+      cocktail: { name: "Cocktail Shaker Sort", fn: cocktailSort },
+      stalin: { name: "Stalin Sort", fn: stalinSort },
+      bogo: { name: "Bogo Sort", fn: bogoSort }
+    };
+
+    // --- Axis Drawing Helper ---
+    function drawAxes(axisX, axisY, plotLeft, plotRight, plotTop, plotBottom) {
+      ctx.save();
+      ctx.strokeStyle = "#30363d";
+      ctx.fillStyle = "#8b949e";
+      ctx.lineWidth = 1.5;
+
+      // Subtle dashed diagonal showing the "sorted" target line
+      ctx.save();
+      ctx.setLineDash([4, 6]);
+      ctx.strokeStyle =
+        phase === "done"
+          ? "rgba(255, 255, 255, 0.22)"
+          : "rgba(139, 148, 158, 0.16)";
+      ctx.beginPath();
+      ctx.moveTo(plotLeft, plotBottom);
+      ctx.lineTo(plotRight, plotTop);
+      ctx.stroke();
+      ctx.restore();
+
+      // Y-Axis Line + Top Arrow
+      ctx.beginPath();
+      ctx.moveTo(axisX, axisY);
+      ctx.lineTo(axisX, plotTop - 10);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(axisX, plotTop - 14);
+      ctx.lineTo(axisX - 4, plotTop - 6);
+      ctx.lineTo(axisX + 4, plotTop - 6);
+      ctx.closePath();
+      ctx.fill();
+
+      // X-Axis Line + Right Arrow
+      ctx.beginPath();
+      ctx.moveTo(axisX, axisY);
+      ctx.lineTo(plotRight + 10, axisY);
+      ctx.stroke();
+
+      ctx.beginPath();
+      ctx.moveTo(plotRight + 14, axisY);
+      ctx.lineTo(plotRight + 6, axisY - 4);
+      ctx.lineTo(plotRight + 6, axisY + 4);
+      ctx.closePath();
+      ctx.fill();
+
+      // Endpoint Tick Labels (0 and N - 1)
+      ctx.font = "11px ui-monospace, SFMono-Regular, Menlo, monospace";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText("0", plotLeft, axisY + 6);
+      ctx.fillText(`${N - 1}`, plotRight, axisY + 6);
+
+      ctx.textAlign = "right";
+      ctx.textBaseline = "middle";
+      ctx.fillText("0", axisX - 7, plotBottom);
+      ctx.fillText(`${N - 1}`, axisX - 7, plotTop);
+
+      // X-Axis Title
+      ctx.font = "12px ui-monospace, SFMono-Regular, Menlo, monospace";
+      ctx.fillStyle = "#c9d1d9";
+      ctx.textAlign = "center";
+      ctx.textBaseline = "bottom";
+      ctx.fillText(
+        `Array Index (0 → ${N - 1})`,
+        (plotLeft + plotRight) / 2,
+        canvas.height - 10
+      );
+
+      // Y-Axis Title (Rotated)
+      ctx.save();
+      ctx.translate(18, (plotTop + plotBottom) / 2);
+      ctx.rotate(-Math.PI / 2);
+      ctx.textAlign = "center";
+      ctx.textBaseline = "top";
+      ctx.fillText("Element Value (Low → High)", 0, 0);
+      ctx.restore();
+
+      ctx.restore();
+    }
+
+    // --- Rendering ---
+    function draw() {
+      ctx.fillStyle = "#0d1117";
+      ctx.fillRect(0, 0, canvas.width, canvas.height);
+
+      const axisX = 62;
+      const axisY = canvas.height - 46;
+      const plotLeft = axisX + 10;
+      const plotRight = canvas.width - 32;
+      const plotTop = 76;
+      const plotBottom = axisY - 10;
+      const plotW = plotRight - plotLeft;
+      const plotH = plotBottom - plotTop;
+
+      drawAxes(axisX, axisY, plotLeft, plotRight, plotTop, plotBottom);
+
+      const baseRadius = N >= 512 ? 2.1 : N >= 256 ? 2.6 : 3.4;
+      const trailLen = Math.max(16, Math.floor(N * 0.12));
+
+      for (let i = 0; i < N; i++) {
+        if (arr[i] === null) continue; // Skip eliminated elements in Stalin Sort
+
+        const x = plotLeft + (i / (N - 1)) * plotW;
+        const y = plotBottom - (arr[i] / (N - 1)) * plotH;
+        const hue = (arr[i] / (N - 1)) * 280;
+
+        ctx.beginPath();
+
+        if (phase === "sorting") {
+          const isActive = activeIndices.includes(i);
+          if (isActive) {
+            ctx.arc(x, y, baseRadius + 2, 0, Math.PI * 2);
+            ctx.fillStyle = "#ffffff";
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = "#ffffff";
+          } else {
+            ctx.arc(x, y, baseRadius, 0, Math.PI * 2);
+            ctx.fillStyle = `hsl(${hue}, 90%, 60%)`;
+            ctx.shadowBlur = 0;
+          }
+        } else if (phase === "sweeping") {
+          const dist = sweepPos - i;
+          if (dist >= 0 && dist < trailLen) {
+            // Luminous RGB shimmer wavefront + glowing rainbow trail
+            const intensity = 1 - dist / trailLen;
+            const r = baseRadius + 2.8 * Math.pow(intensity, 1.4);
+            const lightness = 60 + 38 * Math.pow(intensity, 1.8);
+
+            ctx.arc(x, y, r, 0, Math.PI * 2);
+            ctx.fillStyle = `hsl(${hue}, 98%, ${lightness}%)`;
+            ctx.shadowBlur = 16 * intensity;
+            ctx.shadowColor = intensity > 0.65 ? "#ffffff" : `hsl(${hue}, 100%, 65%)`;
+          } else if (i < sweepPos) {
+            // Verified sorted portion behind the wave (retains full RGB spectrum)
+            ctx.arc(x, y, baseRadius + 0.3, 0, Math.PI * 2);
+            ctx.fillStyle = `hsl(${hue}, 92%, 60%)`;
+            ctx.shadowBlur = 4;
+            ctx.shadowColor = `hsla(${hue}, 90%, 60%, 0.35)`;
+          } else {
+            // Ahead of the wave
+            ctx.arc(x, y, baseRadius, 0, Math.PI * 2);
+            ctx.fillStyle = `hsl(${hue}, 90%, 60%)`;
+            ctx.shadowBlur = 0;
+          }
+        } else {
+          // Completed state (vibrant RGB diagonal)
+          ctx.arc(x, y, baseRadius + 0.3, 0, Math.PI * 2);
+          ctx.fillStyle = `hsl(${hue}, 92%, 60%)`;
+          ctx.shadowBlur = 4;
+          ctx.shadowColor = `hsla(${hue}, 90%, 60%, 0.35)`;
+        }
+
+        ctx.fill();
+      }
+
+      ctx.shadowBlur = 0;
+      opsCounter.textContent = `Operations: ${ops.toLocaleString()} | N = ${N}${statusExtra}`;
+    }
+
+    function step() {
+      if (phase === "sorting") {
+        const stepsPerFrame = Number(speedSlider.value);
+        let done = false;
+
+        for (let s = 0; s < stepsPerFrame; s++) {
+          const res = sorter.next();
+          if (res.done) {
+            done = true;
+            activeIndices = [];
+            break;
+          }
+          activeIndices = res.value || [];
+        }
+
+        if (activeIndices.length > 0) {
+          playTone(arr[activeIndices[0]]);
+        }
+
+        if (done) {
+          phase = "sweeping";
+          sweepPos = 0;
+        }
+
+        draw();
+        animId = requestAnimationFrame(step);
+      } else if (phase === "sweeping") {
+        const trailLen = Math.max(16, Math.floor(N * 0.12));
+        const sweepStep = Math.max(0.6, N / 105); // ~1.75s sweep regardless of N
+
+        // Find nearest non-null element at wavefront for harmonic audio
+        const headIdx = Math.min(N - 1, Math.floor(sweepPos));
+        let soundVal = null;
+        for (let k = headIdx; k >= 0; k--) {
+          if (arr[k] !== null) {
+            soundVal = arr[k];
+            break;
+          }
+        }
+        if (headIdx < N) {
+          playShimmerNote(soundVal);
+        }
+
+        draw();
+        sweepPos += sweepStep;
+
+        if (sweepPos > N + trailLen) {
+          phase = "done";
+          sortedBadge.classList.add("visible");
+          playCompletionChime();
+          draw();
+        } else {
+          animId = requestAnimationFrame(step);
+        }
+      }
+    }
+
+    function init() {
+      if (animId) cancelAnimationFrame(animId);
+      N = Number(sizeSelect.value);
+      arr = Array.from({ length: N }, (_, i) => i);
+
+      // Fisher-Yates shuffle
+      for (let i = N - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+
+      ops = 0;
+      statusExtra = "";
+      activeIndices = [];
+      phase = "sorting";
+      sweepPos = -1;
+      chimePlayed = false;
+      sortedBadge.classList.remove("visible");
+
+      const selected = ALGORITHMS[algoSelect.value];
+      algoTitle.textContent = selected.name;
+      sorter = selected.fn(arr);
+      animId = requestAnimationFrame(step);
+    }
+
+    document.getElementById("restartBtn").addEventListener("click", init);
+    algoSelect.addEventListener("change", init);
+    sizeSelect.addEventListener("change", init);
+    init();
+  </script>
+</body>
+</html>
