@@ -157,7 +157,7 @@
     </label>
 
     <label>
-      <input id="soundToggle" type="checkbox" /> Sound
+      <input id="soundToggle" type="checkbox" checked /> Sound
     </label>
 
     <button id="restartBtn">Shuffle & Run</button>
@@ -208,6 +208,9 @@
 
     function getAudioContext() {
       if (!audioCtx) {
+        if (navigator.userActivation && !navigator.userActivation.hasBeenActive) {
+          return null;
+        }
         audioCtx = new (window.AudioContext || window.webkitAudioContext)();
       }
       if (audioCtx.state === "suspended") {
@@ -216,10 +219,18 @@
       return audioCtx;
     }
 
+    // Unlock Web Audio on the visitor's first click or keypress
+    ["pointerdown", "keydown"].forEach((evt) => {
+      window.addEventListener(evt, () => {
+        if (soundToggle.checked) getAudioContext();
+      }, { once: true });
+    });
+
     // --- Sorting Blip ---
     function playTone(val) {
       if (!soundToggle.checked || val === null || val === undefined) return;
       const ac = getAudioContext();
+      if (!ac) return;
       const osc = ac.createOscillator();
       const gain = ac.createGain();
       osc.type = "triangle";
@@ -236,6 +247,7 @@
     function playShimmerNote(val) {
       if (!soundToggle.checked || val === null || val === undefined) return;
       const ac = getAudioContext();
+      if (!ac) return;
       const now = ac.currentTime;
       const baseFreq = 220 + (val / N) * 880; // Smooth 220Hz -> 1100Hz sweep
 
@@ -270,8 +282,9 @@
     // --- Gentle Two-Note Completion Chime ---
     function playCompletionChime() {
       if (!soundToggle.checked || chimePlayed) return;
-      chimePlayed = true;
       const ac = getAudioContext();
+      if (!ac) return;
+      chimePlayed = true;
       const notes = [783.99, 1046.5]; // Soft G5 -> C6 bell interval
 
       notes.forEach((freq, idx) => {
