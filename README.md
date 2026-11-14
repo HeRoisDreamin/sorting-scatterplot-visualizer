@@ -2,7 +2,7 @@
 
 An interactive, zero-dependency sorting algorithm visualizer built with **HTML5 Canvas**, **ES6 Generators**, and the **Web Audio API** — all packed into a single self-contained HTML file.
 
-Watch **16 sorting algorithms** untangle a shuffled rainbow scatter plot into a clean diagonal line in real time, complete with live operation counters, phase indicators, synthesized audio feedback, and a prismatic RGB verification shimmer upon completion.
+JUST Left Click the GitHub Pages link and watch **16 sorting algorithms** untangle a shuffled rainbow scatter plot into a clean diagonal line in real time, complete with live operation counters, phase indicators, synthesized audio feedback, and a prismatic RGB verification shimmer upon completion.
 
 ---
 
