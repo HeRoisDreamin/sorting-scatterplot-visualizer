@@ -17,18 +17,7 @@
 
 ## 🎥 Preview
 
-> *Tip: Replace this section with a screenshot or short GIF (`preview.gif`) of Quick Sort or LSD Radix Sort finishing with the RGB shimmer.*
-
-```text
-Element Value (Low → High)
-  ▲
-  │                         ● (Purple = High)
-  │                    ●
-  │               ●
-  │          ●
-  │     ●
-  │● (Red = Low)
-  └──────────────────────────▶ Array Index (0 → N - 1)
+![Sorting Visualizer Demo](preview.gif)
 ```
 
 ---
