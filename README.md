@@ -4,10 +4,10 @@
 
 **An interactive, zero-dependency sorting algorithm visualizer powered by HTML5 Canvas, ES6 Generators, and the Web Audio API.**
 
-![HTML5](https://img.shields.io/badge/HTML5-Canvas-E34F26?style=for-the-badge&logo=html5&logoColor=white)  
-![JavaScript](https://img.shields.io/badge/JavaScript-ES6%20Generators-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)  
-![Web Audio API](https://img.shields.io/badge/Audio-Web%20Audio%20API-8A2BE2?style=for-the-badge)  
-![Dependencies](https://img.shields.io/badge/Dependencies-Zero-3FB950?style=for-the-badge)
+![HTML5](https://img.shields.io/badge/HTML5-Canvas-E34F26?style=for-the-badge&logo=html5&logoColor=white)
+ ![JavaScript](https://img.shields.io/badge/JavaScript-ES6%20Generators-F7DF1E?style=for-the-badge&logo=javascript&logoColor=black)
+ ![Web Audio API](https://img.shields.io/badge/Audio-Web%20Audio%20API-8A2BE2?style=for-the-badge)
+ ![Dependencies](https://img.shields.io/badge/Dependencies-Zero-3FB950?style=for-the-badge)
 
 [**Live Demo**](https://HeRoisDreamin.github.io/sorting-scatter-visualizer/) · [**Report Bug**](https://github.com/HeRoisDreamin/sorting-scatter-visualizer/issues) · [**Request Feature**](https://github.com/HeRoisDreamin/sorting-scatter-visualizer/issues)
 
